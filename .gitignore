@@ -1,0 +1,12 @@
+# 模型文件太大（~940MB），不适合直接提交到 GitHub
+# 用 Git LFS 或在 CI 中自动下载
+models/*.gguf
+models/piper_zh_CN/*.onnx
+
+# Buildozer 编译产物
+.buildozer/
+bin/
+
+# Python
+__pycache__/
+*.pyc

@@ -1,0 +1,53 @@
+name: Build EmoCompanion APK
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost
+          sudo docker image prune -af 2>/dev/null || true
+          df -h /
+
+      - name: Cache Buildozer
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.buildozer
+            .buildozer
+          key: buildozer-${{ hashFiles('buildozer.spec') }}
+          restore-keys: buildozer-
+
+      - name: Build Docker image
+        run: docker build -t emocompanion-builder .
+
+      - name: Compile APK
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/app \
+            -v ~/.buildozer:/root/.buildozer \
+            emocompanion-builder
+
+      - name: Find and rename APK
+        run: |
+          mkdir -p output
+          find . -name "*.apk" -exec cp {} output/EmoCompanion.apk \;
+          ls -lh output/
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: EmoCompanion-APK
+          path: output/*.apk
+          retention-days: 30

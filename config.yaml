@@ -1,0 +1,86 @@
+# ============================================================
+# 情感陪伴数字人APP — 全局配置
+# ============================================================
+
+app:
+  name: "EmoCompanion"
+  version: "0.1.0"
+  debug: true
+
+# ----- 人脸检测 -----
+face:
+  model: "mediapipe"                    # mediapipe | yunet | retinaface
+  max_faces: 1                          # 同时检测最大人脸数
+  detection_confidence: 0.7
+  tracking_confidence: 0.7
+  refine_landmarks: true                # 启用 478 关键点（含虹膜）
+
+# ----- 情绪识别 -----
+emotion:
+  num_classes: 8                        # 开心/生气/难过/惊讶/害怕/厌恶/中性/疑惑
+  emotion_map:
+    0: "happy"
+    1: "angry"
+    2: "sad"
+    3: "surprised"
+    4: "fearful"
+    5: "disgusted"
+    6: "neutral"
+    7: "confused"
+  classifier_model: "models/emotion_classifier.onnx"  # 轻量 ONNX 分类器
+
+# ----- 大语言模型 -----
+llm:
+  backend: "llama.cpp"                  # transformers | llama.cpp | mlc-llm
+  model_id: "Qwen/Qwen2-7B-Instruct"   # HuggingFace ID (transformers)
+  gguf_model: "models/qwen2-1_5b-instruct-q4_k_m.gguf"  # 移动端 GGUF
+  quantize: "4bit"                      # 4bit | 8bit | none
+  max_tokens: 512
+  temperature: 0.7
+  top_p: 0.85
+  system_prompt: |
+    你是一个温暖、善解人意的情感陪伴数字人。
+    你需要：
+    1. 根据用户的情绪状态调整你的语气和回应方式
+    2. 保持对话自然流畅，像朋友一样聊天
+    3. 适时给予情感支持和鼓励
+    4. 回复简洁，一般不超过3句话
+    当前用户情绪: {emotion}
+    ---
+    {history}
+    用户: {input}
+    助手:
+
+# ----- 语音识别 -----
+asr:
+  backend: "faster-whisper"             # faster-whisper | whisper.cpp
+  model_size: "base"                    # tiny | base | small | medium | large
+  language: "zh"
+  device: "auto"                        # auto | cpu | cuda
+  compute_type: "int8"                  # 量化类型
+
+# ----- 语音合成 -----
+tts:
+  backend: "piper"                      # coqui | piper
+  model_name: "models/piper_zh_CN/zh_CN-huayan-medium.onnx"
+  speaker_wav: ""
+  speed: 1.0
+  use_gpu: false
+
+# ----- 数字人渲染 -----
+avatar:
+  backend: "opengl"                     # opengl | live2d | blender
+  canvas_width: 720
+  canvas_height: 1080
+  fps: 30
+  # Live2D 模型路径（若 backend=live2d）
+  live2d_model_path: "assets/live2d/Hiyori/Hiyori.model3.json"
+  # 简单 2D 角色参数（若 backend=opengl）
+  avatar_image: "assets/avatar_default.png"
+
+# ----- 唇形同步 -----
+lip_sync:
+  backend: "simple"                     # simple（能量驱动）| wav2lip（深度学习）
+  wav2lip_model: "models/wav2lip_light.onnx"
+  mouth_open_threshold: 0.3
+  smooth_window: 3
