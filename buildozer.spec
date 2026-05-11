@@ -21,10 +21,10 @@ requirements = python3,kivy==2.2.1,numpy,Pillow,opencv,mediapipe,pyyaml,soundfil
 android.permissions = INTERNET,CAMERA,RECORD_AUDIO,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE,WAKE_LOCK,VIBRATE
 
 # ---- 架构 ----
-android.arch = arm64-v8a
+android.archs = arm64-v8a
 android.minapi = 26
-android.ndk = 25.2.9519653
-android.sdk = 33
+# NDK 让 p4a 自动选择（当前推荐 28c）
+# android.sdk 已废弃，通过 workflow 的 ANDROID_HOME 环境变量控制
 
 # ---- 打包选项 ----
 android.allow_backup = True
@@ -33,9 +33,8 @@ android.orientation = portrait
 android.presplash_color = #0f0f1e
 android.wakelock = True
 
-# Kivy 引导
-android.bootstrap = sdl2
-# android.add_activity 一般无需手动指定，buildozer 自动处理
+# Kivy 引导 (android.bootstrap 已废弃，改用 p4a.bootstrap)
+p4a.bootstrap = sdl2
 
 # 额外 Java 依赖（CameraX 用于前置摄像头）
 android.gradle_dependencies = androidx.camera:camera-core:1.1.0, androidx.camera:camera-camera2:1.1.0, androidx.camera:camera-lifecycle:1.1.0

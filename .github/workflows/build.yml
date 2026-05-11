@@ -38,26 +38,27 @@ jobs:
       run: |
         pip install buildozer Cython virtualenv
 
-    - name: Setup Android SDK & NDK
-      run: |
-        export ANDROID_HOME=$HOME/android-sdk
-        mkdir -p $ANDROID_HOME/cmdline-tools
-        wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O /tmp/sdk.zip
-        unzip -q /tmp/sdk.zip -d $ANDROID_HOME/cmdline-tools
-        mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
-        echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
-        echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
-        echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
-        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
-        $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
-          "platform-tools" "platforms;android-33" "build-tools;33.0.0" \
-          "ndk;25.2.9519653"
-
     - name: Cache buildozer
       uses: actions/cache@v4
       with:
         path: ~/.buildozer
-        key: buildozer-${{ runner.os }}-v2-${{ hashFiles('buildozer.spec') }}
+        key: buildozer-${{ runner.os }}-v3-${{ hashFiles('buildozer.spec') }}
+
+    - name: Pre-download NDK (workaround buildozer download bug)
+      run: |
+        NDK_VER="r28c"
+        NDK_DIR="$HOME/.buildozer/android/platform/android-ndk-${NDK_VER}"
+        if [ ! -d "$NDK_DIR" ]; then
+          echo "Downloading NDK ${NDK_VER}..."
+          mkdir -p "$(dirname "$NDK_DIR")"
+          wget -q "https://dl.google.com/android/repository/android-ndk-${NDK_VER}-linux.zip" -O /tmp/ndk.zip
+          unzip -q /tmp/ndk.zip -d "$HOME/.buildozer/android/platform/"
+          rm /tmp/ndk.zip
+          echo "NDK installed at $NDK_DIR"
+        else
+          echo "NDK already cached at $NDK_DIR"
+        fi
+        echo "ANDROID_NDK_HOME=$NDK_DIR" >> $GITHUB_ENV
 
     - name: Build APK
       run: |
