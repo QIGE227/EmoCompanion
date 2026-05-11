@@ -53,7 +53,10 @@ llm:
 
 # ----- 语音识别 -----
 asr:
-  backend: "faster-whisper"             # faster-whisper | whisper.cpp
+  backend: "cloud"                        # cloud | faster-whisper | whisper.cpp
+  # 一期使用云端 API（faster-whisper 无法通过 p4a 编译）
+  # 二期可集成 whisper.cpp 的 GGML 模型
+  cloud_api_url: "https://api.openai.com/v1/audio/transcriptions"
   model_size: "base"                    # tiny | base | small | medium | large
   language: "zh"
   device: "auto"                        # auto | cpu | cuda

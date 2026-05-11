@@ -89,7 +89,8 @@ class LLMEngine:
         """加载 GGUF 量化模型"""
         try:
             from llama_cpp import Llama
-            model_path = self.cfg.get("gguf_model", "models/qwen2-1_5b-instruct-q4_k_m.gguf")
+            cfg = get_config()
+            model_path = cfg["llm"].get("gguf_model", "models/qwen2-1_5b-instruct-q4_k_m.gguf")
             # 绝对路径
             if not os.path.isabs(model_path):
                 model_path = os.path.join(get_data_dir(), model_path)

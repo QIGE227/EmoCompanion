@@ -2,52 +2,70 @@ name: Build EmoCompanion APK
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
   workflow_dispatch:  # 允许手动触发
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 60
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        lfs: true
 
-      - name: Free disk space
-        run: |
-          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost
-          sudo docker image prune -af 2>/dev/null || true
-          df -h /
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
 
-      - name: Cache Buildozer
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.buildozer
-            .buildozer
-          key: buildozer-${{ hashFiles('buildozer.spec') }}
-          restore-keys: buildozer-
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
 
-      - name: Build Docker image
-        run: docker build -t emocompanion-builder .
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          autoconf automake libtool pkg-config \
+          libffi-dev libssl-dev zlib1g-dev
 
-      - name: Compile APK
-        run: |
-          docker run --rm \
-            -v ${{ github.workspace }}:/app \
-            -v ~/.buildozer:/root/.buildozer \
-            emocompanion-builder
+    - name: Install buildozer
+      run: |
+        pip install buildozer Cython virtualenv
 
-      - name: Find and rename APK
-        run: |
-          mkdir -p output
-          find . -name "*.apk" -exec cp {} output/EmoCompanion.apk \;
-          ls -lh output/
+    - name: Setup Android SDK & NDK
+      run: |
+        export ANDROID_HOME=$HOME/android-sdk
+        mkdir -p $ANDROID_HOME/cmdline-tools
+        wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O /tmp/sdk.zip
+        unzip -q /tmp/sdk.zip -d $ANDROID_HOME/cmdline-tools
+        mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
+        echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
+        echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
+        echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
+        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+        $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
+          "platform-tools" "platforms;android-33" "build-tools;33.0.0" \
+          "ndk;25.2.9519653"
 
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: EmoCompanion-APK
-          path: output/*.apk
-          retention-days: 30
+    - name: Cache buildozer
+      uses: actions/cache@v4
+      with:
+        path: ~/.buildozer
+        key: buildozer-${{ runner.os }}-v2-${{ hashFiles('buildozer.spec') }}
+
+    - name: Build APK
+      run: |
+        buildozer android debug
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: EmoCompanion-APK
+        path: bin/*.apk
+        retention-days: 30

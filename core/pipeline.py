@@ -2,6 +2,7 @@
 全管线编排器 —— 把所有引擎串联起来
 摄像头 → 人脸检测 → 情绪识别 → 对话 → TTS → 数字人渲染 + 唇形同步
 """
+import io
 import time
 import threading
 import queue

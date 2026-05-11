@@ -5,8 +5,9 @@
 # ============================================================
 
 # ----- 核心框架 -----
-PyQt5>=5.15.9
+PyQt5>=5.15.9         # PC 端
 PyQt5-sip>=12.13.0
+kivy==2.2.1            # Android 端
 numpy>=1.24.0
 opencv-python>=4.8.0
 
@@ -14,28 +15,24 @@ opencv-python>=4.8.0
 mediapipe>=0.10.7
 
 # ----- 大语言模型 (Qwen2 7B) -----
-transformers>=4.40.0
-torch>=2.1.0
-accelerate>=0.27.0
-bitsandbytes>=0.42.0          # 4‑bit 量化（移动端必选）
-sentencepiece>=0.1.99
-# 可选：llama-cpp-python      # GGUF 推理（更适合 APK 场景）
+# 注意：torch / transformers / faster-whisper 无法通过 p4a 编译
+# 移动端使用 llama.cpp + GGUF 模型（用户手动下载到设备）
+# PC 开发环境可手动安装：
+#   pip install transformers>=4.40.0 torch>=2.1.0 accelerate>=0.27.0 bitsandbytes>=0.42.0
+#   pip install llama-cpp-python
 
 # ----- 语音识别 (Whisper) -----
-faster-whisper>=1.0.3
-# 可选：openai-whisper        # 原始实现
+# PC 环境: pip install faster-whisper>=1.0.3
+# 移动端: 预留接口，默认使用云端 ASR 或用户自行部署
 
-# ----- 语音合成 (Coqui TTS) -----
-TTS>=0.22.0
-# 或 Piper TTS (轻量替代，推荐移动端)
-piper-tts>=1.4.0
+# ----- 语音合成 -----
+# PC 环境: pip install piper-tts>=1.4.0 TTS>=0.22.0
+# 移动端: Piper TTS 模型需用户手动下载到 models/piper_zh_CN/
 
 # ----- 音视频处理 -----
 sounddevice>=0.4.6
 soundfile>=0.12.1
 pyaudio>=0.2.13
-ffmpeg-python>=0.2.0
-librosa>=0.10.1
 
 # ----- 图形渲染 -----
 PyOpenGL>=3.1.7
